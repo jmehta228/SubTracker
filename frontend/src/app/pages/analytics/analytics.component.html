@@ -1,0 +1,177 @@
+<div class="analytics-layout">
+  <!-- Sidebar -->
+  <app-sidebar
+    [username]="username"
+    [userEmail]="userEmail"
+    [isCollapsed]="sidebarCollapsed"
+    (collapsedChange)="onSidebarCollapse($event)"
+    (onLogout)="onLogout()"
+    [class.mobile-visible]="mobileMenuOpen"
+  />
+
+  <!-- Main Content -->
+  <main class="main-content" [class.sidebar-collapsed]="sidebarCollapsed">
+    <!-- Decorative Background -->
+    <div class="bg-decoration"></div>
+
+    <!-- Mobile Menu Toggle -->
+    <button
+      class="mobile-menu-toggle"
+      (click)="toggleMobileMenu()"
+      aria-label="Toggle menu"
+    >
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+
+    <!-- Page Header -->
+    <header class="page-header">
+      <div class="header-content">
+        <div class="header-text">
+          <h1>Analytics & Insights</h1>
+          <p>Visualize your subscription spending patterns and trends</p>
+        </div>
+      </div>
+    </header>
+
+    @if (isLoading) {
+      <!-- Loading State -->
+      <section class="stats-section">
+        <div class="stats-grid">
+          @for (i of [1, 2, 3, 4]; track i) {
+            <div class="glass-card stats-skeleton">
+              <app-skeleton [height]="'80px'" />
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="charts-section">
+        <div class="charts-grid">
+          @for (i of [1, 2, 3, 4]; track i) {
+            <div class="glass-card chart-skeleton">
+              <app-skeleton [height]="'300px'" />
+            </div>
+          }
+        </div>
+      </section>
+    } @else if (subscriptions.length === 0) {
+      <!-- Empty State -->
+      <section class="empty-section">
+        <app-empty-state
+          title="No Subscription Data"
+          description="Start adding subscriptions to see analytics and insights about your spending."
+          [actionText]="'Go to Dashboard'"
+          (action)="router.navigate(['/dashboard'])"
+        />
+      </section>
+    } @else {
+      <!-- Stats Cards -->
+      <section class="stats-section">
+        <div class="stats-grid">
+          <!-- Total Monthly Spending -->
+          <div class="glass-card stat-card">
+            <div class="stat-icon primary">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-label">Monthly Spending</div>
+              <div class="stat-value">${{ totalMonthlySpending().toFixed(2) }}</div>
+            </div>
+          </div>
+
+          <!-- Total Yearly Spending -->
+          <div class="glass-card stat-card">
+            <div class="stat-icon secondary">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-label">Yearly Projection</div>
+              <div class="stat-value">${{ totalYearlySpending().toFixed(2) }}</div>
+            </div>
+          </div>
+
+          <!-- Average Cost -->
+          <div class="glass-card stat-card">
+            <div class="stat-icon accent">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-label">Average per Sub</div>
+              <div class="stat-value">${{ averageSubscriptionCost().toFixed(2) }}</div>
+            </div>
+          </div>
+
+          <!-- Most Expensive -->
+          <div class="glass-card stat-card">
+            <div class="stat-icon warning">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-label">Most Expensive</div>
+              <div class="stat-value stat-value-text">{{ mostExpensiveSubscription() }}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Charts Section -->
+      <section class="charts-section">
+        <div class="charts-grid">
+          <!-- Spending by Frequency -->
+          <div class="glass-card chart-card">
+            <div class="chart-header">
+              <h3 class="chart-title">Subscription Frequency</h3>
+              <p class="chart-subtitle">Monthly vs Yearly distribution</p>
+            </div>
+            <div class="chart-container">
+              <canvas id="spendingByFrequencyChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Monthly Trend -->
+          <div class="glass-card chart-card">
+            <div class="chart-header">
+              <h3 class="chart-title">12-Month Projection</h3>
+              <p class="chart-subtitle">Expected monthly spending trend</p>
+            </div>
+            <div class="chart-container">
+              <canvas id="monthlyTrendChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Top Subscriptions -->
+          <div class="glass-card chart-card">
+            <div class="chart-header">
+              <h3 class="chart-title">Top 5 Subscriptions</h3>
+              <p class="chart-subtitle">Highest monthly costs</p>
+            </div>
+            <div class="chart-container">
+              <canvas id="topSubscriptionsChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Cost Distribution -->
+          <div class="glass-card chart-card">
+            <div class="chart-header">
+              <h3 class="chart-title">Cost Distribution</h3>
+              <p class="chart-subtitle">Subscriptions by price range</p>
+            </div>
+            <div class="chart-container">
+              <canvas id="costDistributionChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+  </main>
+</div>

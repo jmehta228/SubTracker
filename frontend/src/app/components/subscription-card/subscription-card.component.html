@@ -1,0 +1,150 @@
+<article
+  class="subscription-card"
+  role="region"
+  [attr.aria-label]="'Subscription: ' + name"
+  [class.urgent]="isUpcoming"
+>
+  <!-- Category/Status Badge -->
+  <div class="card-badge" [class.badge-warning]="isUpcoming" [class.badge-info]="!isUpcoming">
+    @if (isUpcoming) {
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span>Due Soon</span>
+    } @else {
+      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <span>Active</span>
+    }
+  </div>
+
+  <!-- Card Header -->
+  <div class="card-header">
+    <div class="subscription-icon">
+      <span class="subscription-initial">{{ name.charAt(0).toUpperCase() }}</span>
+    </div>
+    <div class="subscription-title">
+      <h3>{{ name }}</h3>
+      <span class="frequency-badge">{{ frequency }}</span>
+    </div>
+  </div>
+
+  <!-- Price Display -->
+  <div class="price-section">
+    <span class="price-currency">$</span>
+    <span class="price-amount">{{ amount | number: '1.2-2' }}</span>
+    <span class="price-period">/{{ frequency === 'yearly' ? 'year' : 'mo' }}</span>
+  </div>
+
+  <!-- Card Details -->
+  <div class="card-details">
+    <div class="detail-row">
+      <div class="detail-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </div>
+      <div class="detail-content">
+        <span class="detail-label">Next billing</span>
+        <span class="detail-value">{{ dueDate | date: 'MMM d, yyyy' }}</span>
+      </div>
+    </div>
+
+    @if (daysUntilDue !== null) {
+      <div class="detail-row">
+        <div class="detail-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <div class="detail-content">
+          <span class="detail-label">Days remaining</span>
+          <span class="detail-value" [class.text-warning]="daysUntilDue <= 3 && daysUntilDue > 0" [class.text-error]="daysUntilDue <= 0">
+            @if (daysUntilDue < 0) {
+              Overdue by {{ -daysUntilDue }} days
+            } @else if (daysUntilDue === 0) {
+              Due today
+            } @else if (daysUntilDue === 1) {
+              Due tomorrow
+            } @else {
+              {{ daysUntilDue }} days
+            }
+          </span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Recommendation Alert -->
+  @if (recommendation) {
+    <div class="recommendation-alert" role="alert">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <span>Consider reviewing this subscription</span>
+    </div>
+  }
+
+  <!-- Card Actions -->
+  <div class="card-actions">
+    <button
+      class="action-btn action-btn-primary"
+      (click)="onPaidClick()"
+      [disabled]="!canMarkPaid"
+      [attr.aria-label]="'Mark ' + name + ' subscription as paid'"
+      type="button"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6 9 17l-5-5"/>
+      </svg>
+      <span>Paid</span>
+    </button>
+    <button
+      class="action-btn action-btn-edit"
+      (click)="onEditClick()"
+      [attr.aria-label]="'Edit ' + name + ' subscription'"
+      type="button"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+        <path d="m15 5 4 4"/>
+      </svg>
+      <span>Edit</span>
+    </button>
+    <button
+      class="action-btn action-btn-danger"
+      (click)="onDeleteClick()"
+      [attr.aria-label]="'Delete ' + name + ' subscription'"
+      type="button"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        <line x1="10" y1="11" x2="10" y2="17"/>
+        <line x1="14" y1="11" x2="14" y2="17"/>
+      </svg>
+      <span>Delete</span>
+    </button>
+  </div>
+</article>
+
+<!-- Delete Confirmation Modal -->
+<app-confirm-modal
+  [isOpen]="showDeleteModal"
+  title="Delete Subscription"
+  [message]="'Are you sure you want to delete ' + name + '? This action cannot be undone.'"
+  confirmText="Delete"
+  cancelText="Cancel"
+  variant="danger"
+  (confirm)="confirmDelete()"
+  (cancel)="showDeleteModal = false"
+></app-confirm-modal>
